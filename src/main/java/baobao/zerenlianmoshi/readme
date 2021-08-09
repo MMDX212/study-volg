@@ -1,0 +1,94 @@
+假设现在去一家公司面试，第一次去一面，第二次去二面，第三次去直接过了。那这个模拟面试代码怎么写呢？
+
+public abstract class Handler {
+
+    protected Handler handler;
+
+    public void setHandler(Handler handler) {
+        this.handler = handler;
+    }
+    public abstract void handleRequest(Integer times);
+}
+
+
+首先我们还是定义一个抽象Handler处理器，同时添加一个抽象处理方法 handleRequest，后面我只需要编写具体的处理器来继承Handler类
+
+public class FirstInterview extends Handler {
+    @Override
+    public void handleRequest(Integer times) {
+        // 条件判断是否是属于当前Handler的处理范围之内，不是则向下传递Handler处理器
+        if(times ==1){
+          // 假设这里是处理的业务逻辑代码
+            System.out.println("第一次面试"+times);
+        }
+        handler.handleRequest(times);
+    }
+}
+
+其次构建第一次面试Handler，内部实现handleRequest方法，判断一下是否是当前处理应该处理的业务逻辑，不是则向下传递。
+同样的第二次的SecondInterview和FirstInterview代码基本是一致的，我就不给大家贴出来了，直接看最后一个
+public class ThreeInterview extends Handler {
+    @Override
+    public void handleRequest(Integer times) {
+        if (times == 3) {
+            System.out.println("第三次面试"+ times + "，恭喜面试通过，HR会跟你联      系！！！");
+        }
+    }
+
+    public static void main(String[] args) {
+        Handler first = new FirstInterview();
+        Handler second = new SecondInterview();
+        Handler three = new ThreeInterview();
+        first.setHandler(second);
+        second.setHandler(three);
+
+        // 第一次面试
+        first.handleRequest(1);
+        System.out.println();
+        // 第二次面试
+        first.handleRequest(2);
+        System.out.println();
+        // 第三次面试
+        first.handleRequest(3);
+        System.out.println();
+    }
+}
+
+
+第一次面试1
+
+第二次面试2
+
+第三次面试3,恭喜面试通过，HR会跟你联系！！！
+
+
+这个结果可以很明显的看出，根据我们传参，不同的Handler根据自己的职责处理着自己的业务，这就是责任链。
+
+
+
+
+框架的应用
+
+
+责任链在很多框架源码中也有提现，比如SpringMvc 中的 ServletFilter
+
+以及Spring 中的SpringInterceptor 这里面其实都是运用了责任链迷失的思想，达到框架的可扩展性的同事也能遵循开闭原则。
+
+作为常见的RPC 框架 的DUBBO 其实里面也同样 有 这个责任链的思想。
+
+
+问题？
+    dubbo 服务一旦暴露出去了，那么基本任何服务都能调用，但是在一些特殊的业务中我们需要暴露服务，但是又不希望被不了解
+    业务的人随便调用。
+
+    比如： 商品的库存修改的 dubbo 服务，我们只允许下单， 购物车，添加修改商品等一些指定场景可以调用。
+    那么有什么办法，在Provider 这端  做好拦截，针对特定的服务才允许调用，否则拦截下来不允许执行？
+
+    第一种方法，  添加 服务名称 APP_NAME 作为传参校验，这也是很常见也最容易想到的办法。
+    第二种方法， 实现一个DUBBO 拦截器，对RPC 调用进行选择性过滤。
+
+    针对上面的两种方法，我们来实现下，每个公司都会基于现有的DUBBO 源码做自己的特定化修改，那么这种方式也同样需要我们改动现有dubbo yuanma
+
+
+    先修改ConsumerContextFilter 消费者拦截器
+

@@ -1,0 +1,79 @@
+一、什么是策略模式
+　　策略这个词应该怎么理解，打个比方说，我们出门的时候会选择不同的出行方式，比如骑自行车、坐公交、坐火车、坐飞机、坐火箭等等，这些出行方式，每一种都是一个策略。
+
+　　再比如我们去逛商场，商场现在正在搞活动，有打折的、有满减的、有返利的等等，其实不管商场如何进行促销，说到底都是一些算法，这些算法本身只是一种策略，并且这些算法是随时都可能互相替换的，比如针对同一件商品，今天打八折、明天满100减30，这些策略间是可以互换的。
+
+策略模式（Strategy），定义了一组算法，将每个算法都封装起来，并且使它们之间可以互换。UML结构图如下： (baobao/celuemoshi/celuemoshi-uml.png)
+
+　其中，Context是上下文，用一个ConcreteStrategy来配置，维护一个对Strategy对象的引用；Strategy是策略类，用于定义所有支持算法的公共接口；ConcreteStrategy是具体策略类，封装了具体的算法或行为，继承于Strategy。
+
+　　1. Context上下文
+　　Context上下文角色，也叫Context封装角色，起承上启下的作用，屏蔽高层模块对策略、算法的直接访问，封装可能存在的变化。
+
+    public class Context {
+
+        Strategy strategy;
+
+        public Context(Strategy strategy) {
+            this.strategy = strategy;
+        }
+
+        //上下文接口
+        public void contextInterface() {
+            strategy.algorithmInterface();
+        }
+
+    }
+
+
+　2. 策略角色
+　　抽象策略角色，是对策略、算法家族的抽象，通常为接口，定义每个策略或算法必须具有的方法和属性。algorithm是“运算法则”的意思。
+
+    public abstract class Strategy {
+        //算法方法
+        public abstract void algorithmInterface();
+
+    }
+
+    3. 具体策略角色
+    　　用于实现抽象策略中的操作，即实现具体的算法，下方用print代替。测试类共3个ConcreteStrategy，其它两个类与ConcreteStrategyA同理，就不再赘述了
+
+    public class ConcreteStrategyA extends Strategy {
+
+        @Override
+        public void algorithmInterface() {
+            System.out.println("算法A实现");
+        }
+
+    }
+
+
+二、策略模式的应用
+　　1. 何时使用
+一个系统有许多类，而区分它们的只是他们直接的行为时
+　　2. 方法
+将这些算法封装成一个一个的类，任意的替换
+　　3. 优点
+算法可以自由切换
+避免使用多重条件判断（如果不用策略模式我们可能会使用多重条件语句，不利于维护）
+扩展性良好，增加一个策略只需实现接口即可
+　　4. 缺点
+策略类数量会增多，每个策略都是一个类，复用的可能性很小
+所有的策略类都需要对外暴露
+　　5. 使用场景
+多个类只有算法或行为上稍有不同的场景
+算法需要自由切换的场景
+需要屏蔽算法规则的场景
+　　6. 应用实例
+出行方式，自行车、汽车等，每一种出行方式都是一个策略
+商场促销方式，打折、满减等
+Java AWT中的LayoutManager，即布局管理器
+　　7. 注意事项
+如果一个系统的策略多于四个，就需要考虑使用混合模式来解决策略类膨胀的问题
+
+
+三、策略模式的实现
+　　下面就以商场促销为例使用策略模式实现商场促销算法。UML图如下：(baobao/celuemoshi/celuemoshi-shizhan-uml.png)
+
+1. 上下文类
+　　首先声明一个CashSuper对象，通过构造方法，传入具体的收费策略，getResult()方法的功能为根据收费策略的不同获得计算结果。
